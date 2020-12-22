@@ -1,8 +1,7 @@
 /*
-3D printed tank 2020
+Electric longboard 2021
 Main reveiver sketch
 
-29.03.2020
 Marcus Eide
 */
 
@@ -17,13 +16,12 @@ Marcus Eide
 //printf.h sketch for printing out nRF24l01 information
 #include "printf.h"
 
-//Servo pinout
-#define L_MOTOR 5
-#define R_MOTOR 6
+//Motor output
+#define motorOutputPin 5
 
-//Radio pinout
-#define RADIO_1 7
-#define RADIO_2 8
+//Radio pinout (9 and 10 for Arduino Uno).
+#define RADIO_1 9
+#define RADIO_2 10
 
 //Pipe address
 const uint64_t pipeIn =  0xB00B1E5000LL;
@@ -34,27 +32,21 @@ RF24 radio(RADIO_1, RADIO_2);
 /* Struct to hold variables from receiver
 The size of this struct should not exceed 32 bytes */
 struct controllerdata {
-  byte L_UD; //Left stick Up-Down
-  byte L_LR; //Left stick Left-Right
-  byte R_UD; //Right stick Up-Down
-  byte R_LR; //Right stick Left-Right
-  byte dial1; //Left dial
-  byte dial2; // Right dial
-  byte switch1; //Left switch
-  byte switch2; //Right switch
+  byte dial1; //Magnetic dial (hall) sensor
+  byte switch1; //Switch
 };
 
 //Data object
 controllerdata data;
 
-//Servo ESC objects
-Servo left_motor;
-Servo right_motor;
+//Set up motor output to be a servo object.
+Servo motorOutput;
 
 void setup()
 {
    Serial.begin(9600);
    printf_begin();
+   pinMode(LED_BUILTIN, OUTPUT);
 
   // Set up radio module
   radio.begin();
@@ -65,11 +57,10 @@ void setup()
   radio.printDetails();
 
   //Attach servos
-  left_motor.attach(L_MOTOR);
-  right_motor.attach(R_MOTOR);
+  motorOutput.attach(motorOutputPin);
   // Reset values to zero
-  data.L_UD = 90;
-  data.L_LR = 90;
+  data.dial1 = 0;
+  data.switch1 = 0;
   delay(5000); // Wait for ESC to boot
 }
 
@@ -77,52 +68,11 @@ void loop() {
 
   if ( radio.available() ) {
   radio.read(&data, sizeof(controllerdata));
-
-
-
-  //DRIVE
-  //LEFT FORWARD
-  if (data.L_UD > 139) {
-    int map_L_U = map(data.L_UD, 139, 255, 97, 130);
-    left_motor.write(map_L_U);
-
-Serial.println("FWD");
-Serial.println(map_L_U);
-Serial.println(data.L_UD);
+    digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(200);                       // wait for a second
+    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    delay(200);                       // wait for a second
+}else{
+  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
   }
-
-//delay(10);
-
-
-   //LEFT BACKWARD
-     if (data.L_UD < 118) {
-     int map_L_D = map(data.L_UD, 118, 2, 90, 50);
-     left_motor.write(map_L_D);
-Serial.println("BWD");
-Serial.println(map_L_D);
-Serial.println(data.L_UD);
-     }
-
-//RIGHT FORWARD
-  if (data.R_UD > 139) {
-    int map_R_U = map(data.R_UD, 139, 255, 97, 130);
-    right_motor.write(map_R_U);
-
-Serial.println("FWD");
-Serial.println(map_R_U);
-Serial.println(data.R_UD);
   }
-
-//delay(10);
-
-
-   //RIGHT BACKWARD
-     if (data.R_UD < 118) {
-     int map_R_D = map(data.R_UD, 118, 2, 90, 50);
-     right_motor.write(map_R_D);
-Serial.println("BWD");
-Serial.println(map_R_D);
-Serial.println(data.R_UD);
-     }
-  }
-}
