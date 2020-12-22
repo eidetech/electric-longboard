@@ -61,18 +61,21 @@ void setup()
   // Reset values to zero
   data.dial1 = 0;
   data.switch1 = 0;
-  delay(5000); // Wait for ESC to boot
+  //delay(5000); // Wait for ESC to boot
 }
 
 void loop() {
 
   if ( radio.available() ) {
   radio.read(&data, sizeof(controllerdata));
+  
+  Serial.println(data.switch1);
+  if (data.switch1 == 1){
     digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(200);                       // wait for a second
-    digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-    delay(200);                       // wait for a second
-}else{
-  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+    delay(100);
+  }else{
+    digitalWrite(LED_BUILTIN, LOW);   // turn the LED on (HIGH is the voltage level)
+    delay(100);
+  }
   }
   }
